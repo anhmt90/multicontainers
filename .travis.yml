@@ -1,0 +1,18 @@
+services:
+    - docker
+before_install:
+    - docker build -t tama/react-test -f ./client/Dockerfile.dev ./client
+script:
+    - docker run -e CI=true tama/react-test npm run test
+after_success:
+    - docker build -t tama/multicontainers-client ./client
+    - docker build -t tama/multicontainers-nginx ./nginx
+    - docker build -t tama/multicontainers-express-srv ./server
+    - docker build -t tama/multicontainers-worker ./worker
+    # Login ti the docker CLI
+    - echo "$DOCKER_PWD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Take those images and push them to docker hub
+    - docker push tama/multicontainers-client
+    - docker push tama/multicontainers-nginx 
+    - docker push tama/multicontainers-express-srv
+    - docker push tama/multicontainers-worker
